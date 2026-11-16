@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f7f8ff">
+<title>Logic Expression Comparator</title>
+<style>
+:root{color-scheme:light;--bg:#f7f8ff;--surface:#fff;--surface2:#f0eff7;--ink:#191b25;--muted:#626575;--line:#e2e1eb;--primary:#5655a8;--onprimary:#fff;--primary-soft:#e8e7ff;--good:#176b45;--good-bg:#d9f5e5;--bad:#a12c36;--bad-bg:#ffe1e2;--shadow:0 2px 8px #25234a0b,0 12px 30px #25234a0a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Roboto", "Segoe UI",system-ui,sans-serif}
+header{padding:28px max(20px,calc((100% - 1120px)/2)) 22px;background:linear-gradient(120deg,#f0efff,#f8f7ff 65%,#eef6ff);border-bottom:1px solid var(--line)}
+.topline{display:flex;align-items:center;gap:10px;color:var(--primary);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+h1{font-size:clamp(25px,4vw,36px);line-height:1.15;margin:10px 0 8px;letter-spacing:-.035em}header p{color:var(--muted);margin:0;max-width:700px}
+main{max-width:1120px;margin:24px auto;padding:0 18px 56px;display:grid;gap:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:var(--shadow)}
+.card-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+h2{font-size:18px;margin:0;letter-spacing:-.02em}h3{font-size:14px;margin:0 0 9px}
+.eyebrow{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.editors{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.editor{border:1px solid var(--line);border-radius:18px;padding:16px;background:#fff;min-width:0}
+.editor-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.pill{border-radius:99px;background:var(--primary-soft);color:var(--primary);padding:5px 10px;font-size:12px;font-weight:700}
+select{border:1px solid var(--line);background:var(--surface2);border-radius:12px;padding:9px 12px;color:var(--ink);font:inherit;font-weight:600}
+textarea{width:100%;min-height:86px;resize:vertical;border:1px solid var(--line);border-radius:14px;padding:13px;background:#fbfbff;color:var(--ink);font:15px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;outline:none}
+textarea:focus,input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 3px #5655a81c}
+.hint{font-size:12px;color:var(--muted);margin:7px 0 0}
+.token-area{margin-top:14px}
+.tokens{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:7px}
+.token{border:1px solid #d9d8eb;background:#f3f2ff;color:#39377e;border-radius:11px;min-height:40px;font:700 14px ui-monospace,monospace;cursor:pointer;transition:.15s}
+.token:hover{background:#e4e2ff;transform:translateY(-1px)}
+.ops{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.ops button,.action{border:0;border-radius:99px;padding:9px 14px;font:600 13px inherit;cursor:pointer;background:var(--surface2);color:var(--ink)}
+.ops button:hover{background:#e6e4f2}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
+.action.primary{background:var(--primary);color:white;padding:11px 18px}
+.action.tonal{background:var(--primary-soft);color:var(--primary)}
+.action:hover{filter:brightness(.97)}
+.status{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.status strong{font-size:16px}
+.status small{color:var(--muted)}
+.status-badge{border-radius:99px;padding:6px 11px;font-size:12px;font-weight:800}
+.status-badge.match{background:var(--good-bg);color:var(--good)}
+.status-badge.diff{background:var(--bad-bg);color:var(--bad)}
+.status-badge.wait{background:var(--surface2);color:var(--muted)}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:15px}
+table{border-collapse:collapse;width:100%;min-width:600px;font-variant-numeric:tabular-nums}
+th,td{text-align:center;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{background:#f4f3fb;color:#55566a;font-size:12px;font-weight:700;position:sticky;top:0}
+td{font-family:ui-monospace,monospace;font-size:13px}
+tr:last-child td{border-bottom:0}.match-row{background:#f1fbf5}.diff-row{background:#fff3f3}
+.out{font-weight:800;border-radius:7px;padding:3px 8px;display:inline-block;min-width:27px}
+.out.one{background:#d9f5e5;color:#176b45}.out.zero{background:#ececf2;color:#55566a}
+td.diff-cell{color:var(--bad);font-weight:900}
+.single{display:flex;gap:10px;align-items:end;flex-wrap:wrap}
+.field{display:grid;gap:5px}.field label{font-size:12px;color:var(--muted);font-weight:700}
+.field select{min-width:100px}
+.result-box{background:#f5f4ff;border-radius:14px;padding:13px 15px;min-width:190px;flex:1}
+.result-box span{font-size:12px;color:var(--muted);display:block}.result-box strong{font-size:23px;font-family:ui-monospace,monospace}
+.note{color:var(--muted);font-size:12px;margin-top:10px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:10px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;background:var(--good)}.dot.red{background:var(--bad)}
+@media(max-width:720px){.editors{grid-template-columns:1fr}header{padding-top:22px}.card{padding:15px;border-radius:18px}.tokens{grid-template-columns:repeat(4,minmax(0,1fr))}.card-head{align-items:flex-start;flex-direction:column}}
+
+/* Strong mobile and tablet layout overrides */
+html { width:100%; max-width:100%; overflow-x:hidden; -webkit-text-size-adjust:100%; }
+body { width:100%; max-width:100%; min-width:0; overflow-x:hidden; }
+header { padding-left: max(16px, calc((100% - 1120px)/2)); padding-right: max(16px, calc((100% - 1120px)/2)); }
+main { width:100%; min-width:0; }
+.card, .editor, .editors, .card-head, .single, .status { min-width:0; }
+textarea { display:block; min-width:0; max-width:100%; font-size:16px; }
+button, select { touch-action: manipulation; }
+.token { min-width:0; min-height:44px; }
+.table-wrap { width:100%; max-width:100%; overflow-x:auto; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch; }
+table { min-width:560px; }
+th { z-index:1; }
+@media (max-width: 760px) {
+  header { padding:22px 16px 18px; }
+  main { margin:16px auto 0; padding:0 12px 36px; gap:13px; }
+  .card { padding:15px; border-radius:18px; }
+  .editors { grid-template-columns:minmax(0,1fr); gap:12px; }
+  .editor { padding:13px; }
+  .card-head { align-items:flex-start; }
+  .tokens { grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+  .token { min-height:46px; font-size:15px; }
+  .ops { gap:7px; }
+  .ops button, .action { min-height:42px; padding:10px 13px; }
+  .actions { display:grid; grid-template-columns:1fr 1fr; }
+  .actions .primary { grid-column:1 / -1; }
+  .single { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; align-items:end; }
+  .single .field select { width:100%; min-width:0; }
+  #checkOne { grid-column:1 / -1; width:100%; }
+  .result-box { min-width:0; padding:11px; }
+  .result-box strong { font-size:20px; }
+  .single .result-box:last-child { grid-column:1 / -1; }
+  .status { gap:7px; }
+}
+@media (max-width: 390px) {
+  h1 { font-size:27px; }
+  header p { font-size:14px; }
+  main { padding-left:9px; padding-right:9px; }
+  .card { padding:12px; }
+  .editor { padding:11px; }
+  .actions { grid-template-columns:1fr; }
+  .actions .primary { grid-column:auto; }
+  .single { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .single .result-box, .single .result-box:last-child { grid-column:1 / -1; }
+  .ops button { flex:1 1 auto; }
+}
+
+</style>
+</head>
+<body>
+<header>
+ <div class="topline">∑ &nbsp; DIGITAL LOGIC TOOL</div>
+ <h1>Logic Expression Comparator</h1>
+ <p>Build two Boolean expressions, compare their outputs across all 16 input combinations, and test any input row.</p>
+</header>
+<main>
+ <section class="card">
+  <div class="card-head"><div><div class="eyebrow">01 · Expression builder</div><h2>Enter expressions</h2></div><span class="pill">4 variables · 16 rows</span></div>
+  <div class="editors">
+   <div class="editor">
+    <div class="editor-title"><h3>Expression 1</h3><select id="type1" aria-label="Expression 1 form"><option value="SOP">SOP</option><option value="POS">POS</option></select></div>
+    <textarea id="expr1" spellcheck="false" placeholder="Example: A'B + CD"></textarea>
+    <p class="hint">SOP: AND terms joined by OR. POS: OR groups joined by AND.</p>
+    <div class="token-area"><div class="eyebrow">Insert variable</div><div class="tokens">
+     <button class="token" data-target="expr1" data-value="A">A</button><button class="token" data-target="expr1" data-value="B">B</button><button class="token" data-target="expr1" data-value="C">C</button><button class="token" data-target="expr1" data-value="D">D</button>
+     <button class="token" data-target="expr1" data-value="A'">A′</button><button class="token" data-target="expr1" data-value="B'">B′</button><button class="token" data-target="expr1" data-value="C'">C′</button><button class="token" data-target="expr1" data-value="D'">D′</button>
+    </div><div class="ops"><button data-target="expr1" data-value="+">OR +</button><button data-target="expr1" data-value="·">AND ·</button><button data-target="expr1" data-value="(">(</button><button data-target="expr1" data-value=")">)</button><button data-target="expr1" data-value="'">Complement ′</button><button data-clear="expr1">Clear</button></div></div>
+   </div>
+   <div class="editor">
+    <div class="editor-title"><h3>Expression 2</h3><select id="type2" aria-label="Expression 2 form"><option value="POS">POS</option><option value="SOP">SOP</option></select></div>
+    <textarea id="expr2" spellcheck="false" placeholder="Example: (A+B')(C+D)"></textarea>
+    <p class="hint">Use + for OR, · or * for AND, and ' for complement.</p>
+    <div class="token-area"><div class="eyebrow">Insert variable</div><div class="tokens">
+     <button class="token" data-target="expr2" data-value="A">A</button><button class="token" data-target="expr2" data-value="B">B</button><button class="token" data-target="expr2" data-value="C">C</button><button class="token" data-target="expr2" data-value="D">D</button>
+     <button class="token" data-target="expr2" data-value="A'">A′</button><button class="token" data-target="expr2" data-value="B'">B′</button><button class="token" data-target="expr2" data-value="C'">C′</button><button class="token" data-target="expr2" data-value="D'">D′</button>
+    </div><div class="ops"><button data-target="expr2" data-value="+">OR +</button><button data-target="expr2" data-value="·">AND ·</button><button data-target="expr2" data-value="(">(</button><button data-target="expr2" data-value=")">)</button><button data-target="expr2" data-value="'">Complement ′</button><button data-clear="expr2">Clear</button></div></div>
+   </div>
+  </div>
+  <div class="actions"><button class="action primary" id="compare">Compare expressions</button><button class="action tonal" id="example">Load equivalent example</button><button class="action" id="reset">Reset all</button></div>
+  <p class="note">Implicit AND is supported: <b>AB</b> means A AND B. Parentheses are supported. Enter a valid SOP or POS form according to each selector.</p>
+ </section>
+ <section class="card">
+  <div class="card-head"><div><div class="eyebrow">02 · Comparison</div><h2>Truth table</h2></div><div class="status"><span id="statusBadge" class="status-badge wait">Not compared</span><small id="summary">Enter both expressions, then compare.</small></div></div>
+  <div class="table-wrap"><table><thead><tr><th>A</th><th>B</th><th>C</th><th>D</th><th id="head1">Expression 1</th><th id="head2">Expression 2</th><th>Match?</th></tr></thead><tbody id="truthBody"><tr><td colspan="7" style="padding:25px;color:#626575">Your 16-row truth table will appear here.</td></tr></tbody></table></div>
+  <div class="legend"><span><i class="dot"></i>Outputs match</span><span><i class="dot red"></i>Outputs differ</span></div>
+ </section>
+ <section class="card">
+  <div class="card-head"><div><div class="eyebrow">03 · Single-row tester</div><h2>Check one input combination</h2></div></div>
+  <div class="single">
+   <div class="field"><label for="inA">A</label><select id="inA"><option>0</option><option>1</option></select></div>
+   <div class="field"><label for="inB">B</label><select id="inB"><option>0</option><option>1</option></select></div>
+   <div class="field"><label for="inC">C</label><select id="inC"><option>0</option><option>1</option></select></div>
+   <div class="field"><label for="inD">D</label><select id="inD"><option>0</option><option>1</option></select></div>
+   <button class="action primary" id="checkOne">Check input</button>
+   <div class="result-box"><span>Expression 1 output</span><strong id="one1">—</strong></div>
+   <div class="result-box"><span>Expression 2 output</span><strong id="one2">—</strong></div>
+   <div class="result-box"><span>Comparison</span><strong id="oneMatch" style="font-size:16px">—</strong></div>
+  </div>
+  <p class="note" id="oneNote">Compare valid expressions first. This tester evaluates only the selected A, B, C, D values.</p>
+ </section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+function insertAtCursor(el,text){const start=el.selectionStart,end=el.selectionEnd;el.value=el.value.slice(0,start)+text+el.value.slice(end);el.focus();el.setSelectionRange(start+text.length,start+text.length)}
+document.querySelectorAll('[data-target][data-value]').forEach(b=>b.addEventListener('click',()=>insertAtCursor($(b.dataset.target),b.dataset.value)));
+document.querySelectorAll('[data-clear]').forEach(b=>b.addEventListener('click',()=>{$(b.dataset.clear).value='';$(b.dataset.clear).focus()}));
+function tokenize(s){
+ s=s.replace(/[′’]/g,"'").replace(/[∙⋅×]/g,'·').replace(/\s+/g,'');
+ const out=[];let i=0;
+ while(i<s.length){let c=s[i].toUpperCase();if('ABCD'.includes(c)){i++;let neg=false;while(s[i]==="'"){neg=!neg;i++}out.push({t:'v',v:c,n:neg});}
+ else if(c==='+'||c==='·'||c==='*'||c==='('||c===')'){out.push({t:c==='*'?'·':c});i++;}
+ else throw Error('Unexpected character "'+s[i]+'". Use only A–D, +, ·, parentheses and apostrophe.');}
+ // Insert implicit AND between adjacent factors / groups.
+ const fixed=[];for(let j=0;j<out.length;j++){const a=out[j],p=fixed[fixed.length-1];if(p&&((p.t==='v'||p.t===')')&&(a.t==='v'||a.t==='(')))fixed.push({t:'·'});fixed.push(a)}
+ return fixed;
+}
+function parse(s){
+ const ts=tokenize(s);if(!ts.length)throw Error('Expression is empty.');
+ let pos=0;
+ function primary(){let x;if(ts[pos]?.t==='v'){x={k:'v',v:ts[pos].v,n:ts[pos].n};pos++}else if(ts[pos]?.t==='('){pos++;x=or();if(ts[pos]?.t!==')')throw Error('Missing closing parenthesis.');pos++}else throw Error('Expected a variable or opening parenthesis.');return x}
+ function unary(){let x=primary();while(ts[pos]?.t==="'"){x={k:'not',a:x};pos++}return x}
+ function and(){let x=unary();while(ts[pos]?.t==='·'){pos++;x={k:'and',a:x,b:unary()}}return x}
+ function or(){let x=and();while(ts[pos]?.t==='+'){pos++;x={k:'or',a:x,b:and()}}return x}
+ const ast=or();if(pos!==ts.length)throw Error('Unexpected operator or extra symbol.');return ast;
+}
+function evalAst(n,v){switch(n.k){case'v':return n.n?!v[n.v]:v[n.v];case'not':return !evalAst(n.a,v);case'and':return evalAst(n.a,v)&&evalAst(n.b,v);case'or':return evalAst(n.a,v)||evalAst(n.b,v)}}
+function validateForm(ast,type){
+ // Validate structural SOP/POS: SOP = OR of AND groups; POS = AND of OR groups.
+ function flatten(n,k){return n.k===k?[...flatten(n.a,k),...flatten(n.b,k)]:[n]}
+ const outer=type==='SOP'?'or':'and',inner=type==='SOP'?'and':'or';
+ const groups=flatten(ast,outer);
+ const ok=groups.every(g=>flatten(g,inner).every(x=>x.k==='v'));
+ if(!ok)throw Error(type+' format expected. '+(type==='SOP'?'Use OR between product terms, e.g. A·B + C·D.':'Use AND between sum groups, e.g. (A+B)(C+D).'));
+}
+let current=null;
+function compare(){
+ try{
+  const a=parse($('expr1').value),b=parse($('expr2').value);
+  validateForm(a,$('type1').value);validateForm(b,$('type2').value);
+  const rows=[];for(let i=0;i<16;i++){const v={A:(i>>3)&1,B:(i>>2)&1,C:(i>>1)&1,D:i&1};rows.push({...v,x:+evalAst(a,v),y:+evalAst(b,v)})}
+  current={a,b,rows};const matches=rows.filter(r=>r.x===r.y).length;
+  $('head1').textContent=$('type1').value+' · Expression 1';$('head2').textContent=$('type2').value+' · Expression 2';
+  $('truthBody').innerHTML=rows.map(r=>{const ok=r.x===r.y;return `<tr class="${ok?'match-row':'diff-row'}"><td>${r.A}</td><td>${r.B}</td><td>${r.C}</td><td>${r.D}</td><td><span class="out ${r.x?'one':'zero'}">${r.x}</span></td><td><span class="out ${r.y?'one':'zero'}">${r.y}</span></td><td class="${ok?'':'diff-cell'}">${ok?'✓':'≠'}</td></tr>`}).join('');
+  $('statusBadge').className='status-badge '+(matches===16?'match':'diff');$('statusBadge').textContent=matches===16?'Equivalent':'Not equivalent';
+  $('summary').textContent=matches+'/16 rows match · '+(16-matches)+' differences';
+  checkOne();
+ }catch(e){$('statusBadge').className='status-badge diff';$('statusBadge').textContent='Input error';$('summary').textContent=e.message;current=null;$('truthBody').innerHTML=`<tr><td colspan="7" style="padding:22px;color:#a12c36">${e.message}</td></tr>`;$('one1').textContent=$('one2').textContent=$('oneMatch').textContent='—'}
+}
+function checkOne(){
+ if(!current){$('oneNote').textContent='Compare valid expressions first.';return}
+ const v={A:+$('inA').value,B:+$('inB').value,C:+$('inC').value,D:+$('inD').value};
+ const x=+evalAst(current.a,v),y=+evalAst(current.b,v);
+ $('one1').textContent=x;$('one2').textContent=y;$('oneMatch').textContent=x===y?'MATCH':'DIFFERENT';
+ $('oneMatch').style.color=x===y?'#176b45':'#a12c36';$('oneNote').textContent=`Input: A=${v.A}, B=${v.B}, C=${v.C}, D=${v.D}`;
+}
+$('compare').addEventListener('click',compare);$('checkOne').addEventListener('click',checkOne);
+$('example').addEventListener('click',()=>{$('type1').value='SOP';$('expr1').value="A'B + AC";$('type2').value='POS';$('expr2').value="(A+B)(A'+C)";compare()});
+$('reset').addEventListener('click',()=>{$('expr1').value='';$('expr2').value='';$('type1').value='SOP';$('type2').value='POS';current=null;$('truthBody').innerHTML='<tr><td colspan="7" style="padding:25px;color:#626575">Your 16-row truth table will appear here.</td></tr>';$('statusBadge').className='status-badge wait';$('statusBadge').textContent='Not compared';$('summary').textContent='Enter both expressions, then compare.';$('one1').textContent=$('one2').textContent=$('oneMatch').textContent='—'});
+</script>
+</body></html>
